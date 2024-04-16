@@ -1,0 +1,52 @@
+service: aws-node-http-api-project
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action: 
+        - dynamodb:*
+      Resource: 
+        - arn:aws:dynamodb:us-east-1:905418120197:table/PersonTable1
+functions:
+  GetPerson:
+    handler: src/GetPerson.GetPerson
+    vpc:
+      securityGroupIds:
+        - sg-0fb18580ca76d325b 
+      subnetIds:
+        - subnet-0f963e60f095c226a 
+    environment:
+      VPC_ID: vpc-000e5a976529ffab9
+    events:
+      - httpApi:
+          path: /{opcion}
+          method: get
+          request:
+            parameters:
+              paths:
+                option: true
+            integration: lambda
+          
+  createPerson:
+    handler: src/AddPerson.AddPerson
+    events:
+      - httpApi:
+          path: /
+          method: post
+resources:
+  Resources:
+    PersonTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: PersonTable1
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH 
